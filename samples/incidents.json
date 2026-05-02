@@ -1,0 +1,44 @@
+[
+  {
+    "title": "Production API returns 502 for payment checkout",
+    "description": "Customers report checkout failures. Gateway logs show repeated 502 responses from the payment API endpoint after the latest deployment.",
+    "service": "checkout-api",
+    "environment": "production"
+  },
+  {
+    "title": "RPA bot fails on invoice queue",
+    "description": "The unattended invoice bot cannot process queue items because the selector for the supplier number field no longer matches the page.",
+    "service": "invoice-rpa",
+    "environment": "production"
+  },
+  {
+    "title": "Database deadlock causes order delays",
+    "description": "Order processing is slow and intermittent. SQL logs show deadlock events and connection pool waits during peak traffic.",
+    "service": "orders-db",
+    "environment": "production"
+  },
+  {
+    "title": "Users cannot login with SSO",
+    "description": "Multiple users receive unauthorized errors during login. OAuth token validation fails after identity provider certificate rotation.",
+    "service": "identity",
+    "environment": "production"
+  },
+  {
+    "title": "Kubernetes pods restarting due to memory pressure",
+    "description": "Container pods for the reporting service restart repeatedly. Node metrics show high memory usage and latency spikes.",
+    "service": "reporting",
+    "environment": "production"
+  },
+  {
+    "title": "Non-prod database timeout during test run",
+    "description": "A staging SQL query timeout occurred while testing a reporting migration. No customers are affected.",
+    "service": "reporting-db",
+    "environment": "staging"
+  },
+  {
+    "title": "Intermittent behavior reported without logs",
+    "description": "A user reported unusual behavior, but the affected service, timestamps and error messages are not known yet.",
+    "service": "unknown",
+    "environment": "development"
+  }
+]
