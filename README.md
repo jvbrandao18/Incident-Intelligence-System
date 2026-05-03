@@ -1,18 +1,20 @@
 # Incident Intelligence System
 
-## What is it?
-
 Incident Intelligence System is a small FastAPI backend that receives technical incidents, classifies them with deterministic rules, stores the result in SQLite, and helps find similar historical incidents.
 
-It exposes a simple API for:
+## What is it?
 
-- creating classified incidents
-- listing and retrieving incidents
-- finding similar incidents
-- checking incident metrics
-- checking API health
+It is an API-first incident triage service for backend and operations scenarios.
 
-The project uses FastAPI, Pydantic, SQLAlchemy, SQLite, Pytest and Docker. It does not use LLMs or external paid APIs in this version.
+The API can:
+
+- create classified incidents
+- list and retrieve incidents
+- find similar historical incidents
+- return basic incident metrics
+- expose API and database health
+
+This version does not use LLMs or external paid APIs. Classification is deterministic and based on transparent rules.
 
 ## Why was it built?
 
@@ -24,61 +26,45 @@ Incident triage often starts with the same questions:
 - What should the team check next?
 - Have we seen something similar before?
 
-This project was built to automate that first triage pass in a way that is transparent, deterministic and easy to explain. It is intentionally simple enough for a developer to understand quickly, while still showing practical backend engineering: API design, validation, database persistence, service boundaries, tests, Docker support and clear documentation.
+This project was built to automate that first triage pass in a way that is easy to inspect, test, and explain. It shows practical backend engineering through API design, validation, persistence, service boundaries, tests, Docker support, and clear documentation.
 
 ## How does it work?
 
-A client sends an incident with `title`, `description`, `service` and `environment`.
+A client sends an incident with `title`, `description`, `service`, and `environment`.
 
 The classifier scans the incident text using deterministic token and phrase rules. It assigns:
 
-- `category`: `RPA`, `Database`, `API`, `Authentication`, `Infrastructure` or `Unknown`
-- `priority`: `low`, `medium`, `high` or `critical`
+- `category`: `RPA`, `Database`, `API`, `Authentication`, `Infrastructure`, or `Unknown`
+- `priority`: `low`, `medium`, `high`, or `critical`
 - `probable_root_cause`
 - `recommended_action`
 - `confidence`
 - `trace`, explaining which rules matched
 
-Example trace:
+The classified incident is stored in SQLite through SQLAlchemy. Similarity search compares token overlap between the target incident and historical incidents, then returns matches with a `similarity_score`.
 
-```json
-[
-  "category:api_contract_or_gateway_failure",
-  "category_keywords:api,endpoint,502,gateway",
-  "priority:production_context",
-  "confidence:production_context"
-]
-```
+### Main technologies
 
-The classified incident is stored in SQLite through SQLAlchemy. Similarity search compares token overlap between the target incident and historical incidents, returning results with `similarity_score`.
+- Python
+- FastAPI
+- Pydantic
+- SQLAlchemy
+- SQLite
+- Pytest
+- Docker
 
-Project structure:
-
-```text
-app/
-  main.py                 FastAPI application setup
-  database.py             SQLAlchemy engine, session and table initialization
-  models/incident.py      SQLAlchemy incident model
-  schemas/incident.py     Pydantic request and response schemas
-  routers/                HTTP endpoints
-  services/               Classification, persistence, metrics and similarity logic
-samples/incidents.json    Demo incidents covering multiple categories
-scripts/load_sample_data.py
-tests/                    Unit and API tests
-```
-
-Main endpoints:
+### API endpoints
 
 | Method | Path | Description |
 | --- | --- | --- |
-| `POST` | `/incidents` | Create, classify and store an incident |
+| `POST` | `/incidents` | Create, classify, and store an incident |
 | `GET` | `/incidents` | List incidents |
 | `GET` | `/incidents/{incident_id}` | Retrieve one incident |
 | `GET` | `/incidents/{incident_id}/similar` | Return similar historical incidents |
 | `GET` | `/metrics` | Return totals by category and common root causes |
 | `GET` | `/health` | Return API and database health |
 
-Example request:
+### Example usage
 
 ```bash
 curl -X POST http://localhost:8000/incidents \
@@ -91,28 +77,30 @@ curl -X POST http://localhost:8000/incidents \
   }'
 ```
 
-Example response:
+Example trace:
 
 ```json
-{
-  "id": 1,
-  "title": "Production API returns 502",
-  "description": "Checkout endpoint returns 502 from gateway for customers.",
-  "service": "checkout-api",
-  "environment": "production",
-  "category": "API",
-  "priority": "high",
-  "probable_root_cause": "API dependency, gateway or request contract failure is causing errors.",
-  "recommended_action": "Check API logs, status codes, payload changes, dependency health and recent deployments.",
-  "confidence": 0.88,
-  "trace": [
-    "category:api_contract_or_gateway_failure",
-    "category_keywords:api,endpoint,502,gateway",
-    "priority:production_context",
-    "confidence:production_context"
-  ],
-  "created_at": "2026-05-02T12:00:00"
-}
+[
+  "category:api_contract_or_gateway_failure",
+  "category_keywords:api,endpoint,502,gateway",
+  "priority:production_context",
+  "confidence:production_context"
+]
+```
+
+### Project structure
+
+```text
+app/
+  main.py                 FastAPI application setup
+  database.py             SQLAlchemy engine, session, and table initialization
+  models/incident.py      SQLAlchemy incident model
+  schemas/incident.py     Pydantic request and response schemas
+  routers/                HTTP endpoints
+  services/               Classification, persistence, metrics, and similarity logic
+samples/incidents.json    Demo incidents covering multiple categories
+scripts/load_sample_data.py
+tests/                    Unit and API tests
 ```
 
 ## How do I run it?
@@ -159,7 +147,7 @@ The API will be available at:
 http://localhost:8000
 ```
 
-### Run tests
+### Tests and validation
 
 ```bash
 pytest
